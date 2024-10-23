@@ -1,4 +1,6 @@
 from imdb import IMDb
+from sklearn.feature_extraction.text import TfidfVectorizer
+from sklearn.metrics.pairwise import cosine_similarity
 
 # Initialize IMDb instance
 ia = IMDb()
@@ -27,11 +29,13 @@ def get_movie_data(movie):
     companies = movie.get('production companies', [])
     company_names = ', '.join([company['name'] for company in companies]) if companies else 'No production companies available'
 
+    # Печатаем информацию о фильме с пробелами между блоками
     print(f"Title: {movie['title']}, Year: {movie.get('year', 'N/A')}")
     print(f"Genres: {genres}")
     print(f"Rating: {rating}")
     print(f"Produced by: {company_names}")
     print("-" * 40)
+    print("")  # Добавляем пустую строку для пробела между фильмами
 
 def fetch_similar_movies(movie):
     """
@@ -84,6 +88,25 @@ def recommend_based_on_genres(movie):
     top_rated_movies = sorted(filtered_results, key=lambda m: m.get('rating', 0), reverse=True)
     return top_rated_movies[:5]
 
+def recommend_based_on_company(movie):
+    """
+    Recommend movies based on the same production company.
+    """
+    companies = movie.get('production companies', [])
+    if not companies:
+        return []
+    
+    # Search for movies produced by the same companies
+    recommendations = []
+    for company in companies:
+        search_results = ia.search_movie(company['name'])
+        filtered_results = [
+            m for m in search_results if 'genres' in m and 'rating' in m
+        ]
+        recommendations.extend(filtered_results[:5])  # Include top 5 movies from each company
+    
+    return recommendations[:5]
+
 if __name__ == "__main__":
     print("Welcome to the Global Movie Search System!\n")
     
@@ -102,10 +125,27 @@ if __name__ == "__main__":
         recommendations = fetch_similar_movies(selected_movie)
 
         if recommendations:
-            print(f"\nMovies similar to '{selected_movie['title']}':")
+            print(f"\nMovies similar to '{selected_movie['title']}':\n")
             for rec in recommendations[:5]:  # Display top 5 similar movies
                 get_movie_data(rec)
+        
+        # Recommend based on the same genre if no recommendations found
         else:
-            print(f"Sorry, no similar movies found for '{selected_movie['title']}'.")
+            genre_based = recommend_based_on_genres(selected_movie)
+            if genre_based:
+                print(f"\nMovies based on the same genre as '{selected_movie['title']}':")
+                for rec in genre_based:
+                    get_movie_data(rec)
+            else:
+                print(f"Sorry, no similar movies found for '{selected_movie['title']}'.")
+
+        # Recommend based on production companies
+        company_based = recommend_based_on_company(selected_movie)
+        if company_based:
+            print(f"\nMovies from the same production companies as '{selected_movie['title']}':")
+            for rec in company_based:
+                get_movie_data(rec)
+        else:
+            print(f"Sorry, no movies found based on production companies of '{selected_movie['title']}'.")
     else:
         print(f"Sorry, no movie found with the title '{movie_choice}'.")

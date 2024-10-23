@@ -17,7 +17,7 @@ def main_menu():
     elif choice == '2':
         print()
         # Run genre-based recommendation system
-        os.system('python Movie-Recommendation-AI.py')
+        os.system('python movie-recommendation.py')
     else:
         print()
         print("Invalid choice. Please enter 1 or 2.")
