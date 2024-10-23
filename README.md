@@ -24,7 +24,7 @@ This project is a **movie recommendation system** that allows users to search fo
 1. Clone the repository:
 
     ```bash
-    git clone https://github.com/yourusername/movie-recommendation-system.git
+    git clone https://github.com/KQ29/movie-recommendation-system.git
     ```
 
 2. Install the required libraries:
